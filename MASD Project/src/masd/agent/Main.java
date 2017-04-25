@@ -33,6 +33,8 @@ public class Main {
 		
 		//MapGUI gui = new MapGUI(rows, cols, map);
 		
+		
+
 		PlatformConfiguration configuration = PlatformConfiguration.getDefaultNoGui();
 		configuration.setPlatformName("Masd");
 		IFuture<IExternalAccess> platfut = Starter.createPlatform(configuration);
