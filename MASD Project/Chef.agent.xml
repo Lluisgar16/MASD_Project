@@ -1,0 +1,47 @@
+<agent xmlns="http://jadex.sourceforge.net/jadex-bdi"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://jadex.sourceforge.net/jadex-bdi 
+                           http://jadex.sourceforge.net/jadex-bdi-3.0.43.xsd"
+  name="Chef" package="masd.agent.ChefBDI.class">
+  
+  <imports>
+  <import>jadex.base.fipa.SFipa</import>
+</imports>
+
+  
+  <beliefs>
+  
+  </beliefs>
+  
+    <events>
+  <!-- A query-ref message with content "ping" -->
+  <messageevent name="query-ping" type="fipa" direction="receive">
+    <parameter name="performative" class="String" direction="fixed">
+      <value>SFipa.QUERY_REF</value>
+    </parameter>
+    <parameter name="content" class="String" direction="fixed">
+      <value>"ping"</value>
+    </parameter>
+  </messageevent>
+    
+  <!-- An inform message where content contains the word "hello" -->
+  <messageevent name="inform_hello" type="fipa" direction="receive">
+    <parameter name="performative" class="String" direction="fixed">
+      <value>SFipa.INFORM</value>
+    </parameter>
+    <match>((String)$content).indexOf("hello") != -1</match>
+  </messageevent>
+  
+    <!-- A query-ref message with content "ping" -->
+  <messageevent name="query-ping" type="fipa" direction="send">
+    <parameter name="performative" class="String">
+      <value>SFipa.QUERY-REF</value>
+    </parameter>
+    <parameter name="content" class="String">
+      <value>"ping"</value>
+    </parameter>
+  </messageevent>
+</events>
+  
+  
+</agent>

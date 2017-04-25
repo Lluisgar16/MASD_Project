@@ -13,7 +13,7 @@ public class MapperBDI {
 	@AgentBody
 	public void body()
 	{
-		System.out.println("Created agent "+agent.getComponentIdentifier());
+		//System.out.println("Created agent "+agent.getComponentIdentifier());
 	}
 
 }

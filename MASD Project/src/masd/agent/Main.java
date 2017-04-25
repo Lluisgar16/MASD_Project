@@ -1,6 +1,8 @@
 package masd.agent;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import jadex.base.PlatformConfiguration;
@@ -39,15 +41,27 @@ public class Main {
 		IExternalAccess platform = platfut.get();
 		IComponentManagementService cms = SServiceProvider.getService(platform.getServiceProvider(), IComponentManagementService.class, RequiredServiceInfo.SCOPE_PLATFORM).get();
 		
-		Map<String, Object> agentparameters = new HashMap<String, Object>();
-		agentparameters.put("Initialx", 6);
-		agentparameters.put("Initialy", 2);
-		CreationInfo info = new CreationInfo(agentparameters);
-		cms.createComponent("Waiter1","masd.agent.WaiterBDI.class", info);
-		agentparameters.put("Initialx", 6);
-		agentparameters.put("Initialy", 7);
-		info.setArguments(agentparameters);
-		//cms.createComponent("Waiter2","masd.agent.WaiterBDI.class", info);
+		List<String> waiters = new ArrayList<>();
+		waiters.add("Waiter1");
+		waiters.add("Waiter2");
+		
+		List<String> chefs = new ArrayList<>();
+		waiters.add("Chef1");
+		waiters.add("Chef2");
+		
+		List<String> orders = new ArrayList<>();
+		orders.add("Order1");
+		
+		for(String waiter : waiters){
+			cms.createComponent(waiter,"masd.agent.WaiterBDI.class", new CreationInfo());
+		}
+		
+		for(String chef : chefs){
+			cms.createComponent(chef,"masd.agent.ChefBDI.class", new CreationInfo());
+		}
+		
+
+
 		cms.createComponent("Mapper", "masd.agent.MapperBDI.class", new CreationInfo());
 	}
 
