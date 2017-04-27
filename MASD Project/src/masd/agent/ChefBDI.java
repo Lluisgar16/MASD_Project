@@ -1,14 +1,22 @@
 package masd.agent;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import jadex.bdiv3.annotation.Belief;
 import jadex.bdiv3.annotation.Plan;
 import jadex.bdiv3.annotation.Trigger;
 import jadex.bdiv3.features.IBDIAgentFeature;
 import jadex.bdiv3.runtime.ChangeEvent;
+import jadex.bridge.IMessageAdapter;
 import jadex.bridge.component.IExecutionFeature;
+import jadex.bridge.component.IMessageFeature;
+import jadex.bridge.component.IMessageHandler;
+import jadex.bridge.fipa.SFipa;
+import jadex.bridge.service.types.message.MessageType;
+import jadex.commons.IFilter;
 import jadex.micro.annotation.Agent;
 import jadex.micro.annotation.AgentBody;
 import jadex.micro.annotation.AgentCreated;
@@ -16,7 +24,7 @@ import jadex.micro.annotation.AgentFeature;
 import jadex.rules.eca.ChangeInfo;
 
 @Agent
-public class ChefBDI {
+public class ChefBDI /*implements IMessageHandler*/ {
 
 	
 	@Belief
@@ -31,19 +39,25 @@ public class ChefBDI {
 	@AgentFeature
 	protected IExecutionFeature execFeature;
 	
+	@AgentFeature
+	protected IMessageFeature messageFeature;
+	
 	@AgentCreated
 	public void init(){
 		//Things that should happen when the agent is created. 
-		System.out.println("Chef arrived at work.Œ");
+		System.out.println("Chef arrived at work.");
 		
 		//Set beliefs etc. 
 		this.currentlyCooking = null;
 		
 		//No orders to begin with
 		this.orders = new ArrayList<>();
+		
+		//messageFeature.addMessageHandler(this);
 
 		
 		//Test data
+		
 		Order order = new Order("1", 1000);
 		orders.add(order);
 		order = new Order("2", 5000);
@@ -54,6 +68,7 @@ public class ChefBDI {
 		orders.add(order);
 		order = new Order("5", 2000);
 		orders.add(order);
+		
 	}
 	
 	@AgentBody
@@ -109,7 +124,14 @@ public class ChefBDI {
 			}
 			else{
 				System.out.println("Chef is out of orders to prepare. Alert waiters");
-				bdiFeature.adoptPlan(SendMessagePlan.class);
+				//bdiFeature.adoptPlan(SendMessagePlan.class);
+				
+				Map<String, Object> messageContent = new HashMap<>();
+				messageContent.put("order", currentlyCooking);
+				messageFeature.sendMessage(messageContent, SFipa.FIPA_MESSAGE_TYPE);
+				System.out.println("Message sent.");
+				
+				
 			}
 
 		}
@@ -138,6 +160,8 @@ public class ChefBDI {
 			}
 		}		
 	}
+
+
 	
 	/**
 	 * Need a plan that gets triggered by incoming message.

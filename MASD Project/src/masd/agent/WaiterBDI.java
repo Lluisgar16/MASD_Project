@@ -37,6 +37,25 @@ public class WaiterBDI {
 		
 		currentlyDelivering = null;
 		orders = new ArrayList<>();
+		
+		//Test data
+		/*
+		Order order = new Order("1", 1000);
+		order.setToKitchen(false);
+		orders.add(order);
+		order = new Order("2", 5000);
+		order.setToKitchen(false);
+		orders.add(order);
+		order = new Order("3", 100);
+		order.setToKitchen(true);
+		orders.add(order);
+		order = new Order("4", 500);
+		order.setToKitchen(true);
+		orders.add(order);
+		order = new Order("5", 2000);
+		order.setToKitchen(false);
+		orders.add(order);
+		*/
 	}
 	
 	@AgentBody
