@@ -13,4 +13,5 @@ public class ChefBDI {
 		this.positionx = row;
 		this.positiony = col;
 	}
+	
 }

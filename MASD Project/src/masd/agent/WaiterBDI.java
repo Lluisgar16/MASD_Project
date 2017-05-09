@@ -1,6 +1,7 @@
 package masd.agent;
 
 import jadex.bdiv3.annotation.Belief;
+
 import jadex.bridge.IInternalAccess;
 import jadex.micro.annotation.Agent;
 import jadex.micro.annotation.AgentBody;
@@ -37,7 +38,6 @@ public class WaiterBDI  {
 	@AgentBody
 	public void body()
 	{
-		
 		this.currentposition_x = (int) agent.getArgument("Initialx");
 		this.currentposition_y = (int) agent.getArgument("Initialy");
 		System.out.println("Created agent "+agent.getComponentIdentifier()+ " In position "+String.valueOf(this.currentposition_x)+","+String.valueOf(this.currentposition_y));
