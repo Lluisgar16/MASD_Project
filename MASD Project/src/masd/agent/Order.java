@@ -3,26 +3,24 @@ package masd.agent;
 public class Order {
 	
 	private String name;
-	private long timeToCook;
+	private int timeToCook;
 	private String customer;
 	private boolean toKitchen;
-	private long timeToDeliver;
+	private int timeToDeliver;
 	private boolean isDelivered;
 	
 	public long getTimeToDeliver() {
-		return timeToDeliver;
+		return timeToDeliver*1000;
 	}
 
-	public void setTimeToDeliver(long timeToDeliver) {
-		this.timeToDeliver = timeToDeliver;
-	}
 
-	public Order(String name, long timeToCook) {
+	public Order(String name, int timeToCook, int timeToDeliver) {
 		super();
 		this.name = name;
 		this.timeToCook = timeToCook;
 		this.toKitchen = true;
 		this.isDelivered = false;
+		this.timeToDeliver = timeToDeliver;
 	}
 
 	public boolean isDelivered() {
@@ -57,13 +55,10 @@ public class Order {
 		this.name = name;
 	}
 
-	public long getTimeToCook() {
-		return timeToCook;
+	public int getTimeToCook() {
+		return timeToCook*1000;
 	}
 
-	public void setTimeToCook(long timeToCook) {
-		this.timeToCook = timeToCook;
-	}
 	
 	
 

@@ -20,6 +20,6 @@ public class Main {
 		config.addComponent("masd.agent.ChefBDI.class");
 		config.addComponent("masd.agent.WaiterBDI.class");
 		Starter.createPlatform(config).get();
+	
 	}
-
 }

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Observable;
+import java.util.Observer;
 
 import jadex.bdiv3.annotation.Belief;
 import jadex.bdiv3.annotation.Plan;
@@ -24,8 +26,10 @@ import jadex.micro.annotation.AgentFeature;
 import jadex.rules.eca.ChangeInfo;
 
 @Agent
-public class ChefBDI /*implements IMessageHandler*/ {
+public class ChefBDI{
 
+	@Belief
+	protected boolean justArrived;
 	
 	@Belief
 	protected List<Order> orders;
@@ -49,31 +53,21 @@ public class ChefBDI /*implements IMessageHandler*/ {
 		
 		//Set beliefs etc. 
 		this.currentlyCooking = null;
+		this.justArrived = true;
 		
 		//No orders to begin with
 		this.orders = new ArrayList<>();
 		
-		//messageFeature.addMessageHandler(this);
+		//Register as listener 
+		Restaurant.getInstance().addObserver(this);
+		
 
-		
-		//Test data
-		
-		Order order = new Order("1", 1000);
-		orders.add(order);
-		order = new Order("2", 5000);
-		orders.add(order);
-		order = new Order("3", 100);
-		orders.add(order);
-		order = new Order("4", 500);
-		orders.add(order);
-		order = new Order("5", 2000);
-		orders.add(order);
 		
 	}
 	
 	@AgentBody
 	public void body(){
-		//bdiFeature.adoptPlan("cookFood");
+
 	}
 	
 	/**
@@ -89,6 +83,7 @@ public class ChefBDI /*implements IMessageHandler*/ {
 		currentlyCooking.setToKitchen(false);
 		System.out.println("Finished preparing meal: " + currentlyCooking.getName() + ", now send it to waiter.");
 		//TODO: Send the order to a waiter so he can deliver it to a waiter. 
+		Restaurant.getInstance().addOrderForWaiterBackToCustomer(currentlyCooking);
 		this.orders.remove(this.currentlyCooking);
 		
 		if(!orders.isEmpty()){
@@ -98,11 +93,7 @@ public class ChefBDI /*implements IMessageHandler*/ {
 		else{
 			this.currentlyCooking = null;			
 			//Wait 5 seconds then add another order
-			/*
 			execFeature.waitForDelay(5000).get();
-			Order order = new Order("6", 9000);
-			this.orders.add(order);
-			*/
 		}
 	}
 
@@ -123,15 +114,11 @@ public class ChefBDI /*implements IMessageHandler*/ {
 				this.currentlyCooking = currentlyCooking;
 			}
 			else{
-				System.out.println("Chef is out of orders to prepare. Alert waiters");
-				//bdiFeature.adoptPlan(SendMessagePlan.class);
-				
-				Map<String, Object> messageContent = new HashMap<>();
-				messageContent.put("order", currentlyCooking);
-				messageFeature.sendMessage(messageContent, SFipa.FIPA_MESSAGE_TYPE);
-				System.out.println("Message sent.");
-				
-				
+				if(!justArrived){
+					System.out.println("Chef is out of orders to prepare. Alert waiters");
+
+				}
+				justArrived = false;
 			}
 
 		}
@@ -158,21 +145,10 @@ public class ChefBDI /*implements IMessageHandler*/ {
 			if(currentlyCooking != null){
 				System.out.println("Chef is busy, " + newOrder.getName() + " is added to queue.");
 			}
-		}		
+		}	
 	}
 
-
-	
-	/**
-	 * Need a plan that gets triggered by incoming message.
-	 * The plan will then extract an Order object from the message and add it to the list of orders. 
-	 */
-	
-	/**
-	 * Need a plan to send a message that includes and Order to a Waiter.
-	 */
-	
-	
-	
-
+	public void collectList() {
+		this.orders = Restaurant.getInstance().getChefList();
+	}
 }

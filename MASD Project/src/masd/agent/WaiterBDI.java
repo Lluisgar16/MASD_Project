@@ -20,6 +20,9 @@ public class WaiterBDI {
 	
 	@Belief
 	protected List<Order> orders;
+	
+	@Belief 
+	protected boolean justArrived;
 		
 	@Belief
 	protected Order currentlyDelivering;
@@ -37,6 +40,7 @@ public class WaiterBDI {
 		
 		currentlyDelivering = null;
 		orders = new ArrayList<>();
+		justArrived = true;
 		
 		//Test data
 		/*
@@ -77,7 +81,12 @@ public class WaiterBDI {
 				this.currentlyDelivering = orderToDeliver;
 			}
 			else{
-				System.out.println("Waiter has no more orders to deliver.");
+				if(!justArrived){
+					System.out.println("Waiter has no more orders to deliver.");
+					Restaurant.getInstance().addOrderForWaiter();
+				}
+				orders = Restaurant.getInstance().getWaiterList();
+				justArrived = false;
 			}	
 		}
 		else{
@@ -125,7 +134,7 @@ public class WaiterBDI {
 		}
 		else{
 			System.out.println("Finished delivering order: " + currentlyDelivering.getName() + " to kitchen.");
-			//TODO: Send message to chef including order
+			Restaurant.getInstance().addToChefList(currentlyDelivering);
 		}
 		
 		this.orders.remove(currentlyDelivering);
