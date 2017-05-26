@@ -13,6 +13,7 @@ public class Restaurant{
 	private List<Order> chefOrders;
 	private int orderCount;
 	private List<ChefBDI> observers = new ArrayList<>();
+	private List<WaiterBDI> waiterObservers = new ArrayList<>();
 	
 	protected Restaurant(){
 		waiterOrders = new ArrayList<>();
@@ -31,10 +32,18 @@ public class Restaurant{
 	}
 
 
-	private static int generateRandomTime() {
+	public static int generateRandomTime() {
 		Random random = new Random();
 		int r = random.nextInt((9-4)+4);
 		return r;
+	}
+
+	public int getOrderCount() {
+		return orderCount;
+	}
+
+	public void setOrderCount(int orderCount) {
+		this.orderCount = orderCount;
 	}
 
 	public static Restaurant getInstance(){
@@ -58,7 +67,12 @@ public class Restaurant{
 		for(ChefBDI o: observers){
 			o.collectList();
 		}
-		
+	}
+	
+	private void notifyWaiter(){
+		for(WaiterBDI o: waiterObservers){
+			o.collectList();
+		}
 	}
 
 	public List<Order> getChefList() {
@@ -74,9 +88,14 @@ public class Restaurant{
 	public void addObserver(ChefBDI o){
 		observers.add(o);
 	}
+	
+	public void addWaiterObserver(WaiterBDI o){
+		waiterObservers.add(o);
+	}
 
 	public void addOrderForWaiterBackToCustomer(Order currentlyCooking) {
 		waiterOrders.add(currentlyCooking);	
+		notifyWaiter();
 	}
 	
 	

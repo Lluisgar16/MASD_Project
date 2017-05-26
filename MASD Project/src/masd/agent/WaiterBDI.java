@@ -2,6 +2,7 @@ package masd.agent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import jadex.bdiv3.annotation.Belief;
 import jadex.bdiv3.annotation.Plan;
@@ -18,6 +19,8 @@ import jadex.rules.eca.ChangeInfo;
 @Agent
 public class WaiterBDI {
 	
+	private static final int maxAmountOfOrders = 3;
+
 	@Belief
 	protected List<Order> orders;
 	
@@ -41,6 +44,7 @@ public class WaiterBDI {
 		currentlyDelivering = null;
 		orders = new ArrayList<>();
 		justArrived = true;
+		Restaurant.getInstance().addWaiterObserver(this);
 		
 		//Test data
 		/*
@@ -83,9 +87,14 @@ public class WaiterBDI {
 			else{
 				if(!justArrived){
 					System.out.println("Waiter has no more orders to deliver.");
+					Random random = new Random();
+					int r = random.nextInt((15-4)+4);
+					System.out.println("A new order will arrive in " + r + " seconds.");
+					execFeature.waitForDelay(r*1000);
 					Restaurant.getInstance().addOrderForWaiter();
 				}
 				orders = Restaurant.getInstance().getWaiterList();
+				
 				justArrived = false;
 			}	
 		}
@@ -95,6 +104,8 @@ public class WaiterBDI {
 			}
 			else{
 				System.out.println("Waiter is on his way to a customer with order " + currentlyDelivering.getName());
+				
+
 			}
 			
 			bdiFeature.adoptPlan("deliverOrder");
@@ -148,14 +159,10 @@ public class WaiterBDI {
 		}
 	}
 	
-	/**
-	 * Need a plan that gets triggered by incoming message.
-	 * The plan will then extract an Order object from the message and add it to the list of orders. 
-	 */
-	
-	/**
-	 * Need a plan to send a message that includes and Order to a Chef.
-	 */
+	public void collectList() {
+		this.orders = Restaurant.getInstance().getWaiterList();
+	}
+
 	
 	
 
