@@ -1,74 +1,169 @@
 package masd.agent;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
 import jadex.bdiv3.annotation.Belief;
-import jadex.bridge.IInternalAccess;
+import jadex.bdiv3.annotation.Plan;
+import jadex.bdiv3.annotation.Trigger;
+import jadex.bdiv3.features.IBDIAgentFeature;
+import jadex.bdiv3.runtime.ChangeEvent;
+import jadex.bridge.component.IExecutionFeature;
 import jadex.micro.annotation.Agent;
 import jadex.micro.annotation.AgentBody;
-import jadex.micro.annotation.Argument;
-import jadex.micro.annotation.Arguments;
-import jadex.micro.annotation.Description;
-import masd.gui.Cell;
-import masd.gui.CellType;
-import masd.gui.MapGUI;
-
-@Description("The WaiterBDI corresponds to the agents responsible for transporting food to the tables.")
-@Arguments({@Argument(name = "Initialx", clazz = Integer.class), 
-			@Argument(name = "Initialy", clazz = Integer.class) })
+import jadex.micro.annotation.AgentCreated;
+import jadex.micro.annotation.AgentFeature;
+import jadex.rules.eca.ChangeInfo;
 
 @Agent
-public class WaiterBDI  {	
+public class WaiterBDI {
 	
-	private MapGUI gui;
-	private final int[] positionsx = new int[]{6,6,7,8,8,8,7,6};
-	private final int[] positionsy = new int[]{2,3,3,3,2,1,1,1};
+	private static final int maxAmountOfOrders = 3;
+
+	@Belief
+	protected List<Order> orders;
 	
-    @Agent
-    private IInternalAccess agent;
-    	
+	@Belief 
+	protected boolean justArrived;
+		
 	@Belief
-	private int currentposition_x;
-	@Belief
-	private int currentposition_y;
-	@Belief
-	private Cell[][] map;
-	@Belief
-	private int[] destination = new int[2];
+	protected Order currentlyDelivering;
+	
+	@AgentFeature
+	protected IBDIAgentFeature bdiFeature;
+	
+	@AgentFeature
+	protected IExecutionFeature execFeature;
+	
+	@AgentCreated
+	public void init(){
+		
+		System.out.println("Waiter arrived at work.");
+		
+		currentlyDelivering = null;
+		orders = new ArrayList<>();
+		justArrived = true;
+		Restaurant.getInstance().addWaiterObserver(this);
+		
+		//Test data
+		/*
+		Order order = new Order("1", 1000);
+		order.setToKitchen(false);
+		orders.add(order);
+		order = new Order("2", 5000);
+		order.setToKitchen(false);
+		orders.add(order);
+		order = new Order("3", 100);
+		order.setToKitchen(true);
+		orders.add(order);
+		order = new Order("4", 500);
+		order.setToKitchen(true);
+		orders.add(order);
+		order = new Order("5", 2000);
+		order.setToKitchen(false);
+		orders.add(order);
+		*/
+	}
 	
 	@AgentBody
-	public void body()
-	{
+	public void body(){
+		//bdiFeature.adoptPlan("cookFood");
+	}
+	
+	/**
+	 * Plan that gets triggered when the order the waiter is currently delivering gets changed.
+	 */
+	@Plan(trigger=@Trigger(factchangeds="currentlyDelivering"))
+	public void changedCurrentlyDelivering(ChangeEvent event){
+		ChangeInfo<Order> change = ((ChangeInfo<Order>)event.getValue());
+		Order orderToDeliver = change.getValue();
 		
-		this.currentposition_x = (int) agent.getArgument("Initialx");
-		this.currentposition_y = (int) agent.getArgument("Initialy");
-		System.out.println("Created agent "+agent.getComponentIdentifier()+ " In position "+String.valueOf(this.currentposition_x)+","+String.valueOf(this.currentposition_y));
-		
-		// The map initialization is done by MapperBDI but is now here for testing.
-		int rows = 9;
-		int cols = 9;
-		Cell[][] map = new Cell[rows][cols];
-		for (int i = 0; i < rows; i += 1)
-		{
-			for (int j = 0; j < cols; j += 1)
-			{
-				if((i == 1 || i == 4) && (j == 1 || j == 4 || j == 7)) { map[i][j] = new Cell(i,j,CellType.TABLE); }
-				else if((i == 7) && (j == 2 || j == 6)) { map[i][j] = new Cell(i,j,CellType.KITCHEN); }
-				else { map[i][j] = new Cell(i,j,CellType.FLOOR); }
+		if(currentlyDelivering == null){
+			
+			if(orderToDeliver != null){
+				this.currentlyDelivering = orderToDeliver;
 			}
+			else{
+				if(!justArrived){
+					System.out.println("Waiter has no more orders to deliver.");
+					Random random = new Random();
+					int r = random.nextInt((15-4)+4);
+					System.out.println("A new order will arrive in " + r + " seconds.");
+					execFeature.waitForDelay(r*1000);
+					Restaurant.getInstance().addOrderForWaiter();
+				}
+				orders = Restaurant.getInstance().getWaiterList();
+				
+				justArrived = false;
+			}	
 		}
-		
-		this.gui = new MapGUI(rows, cols, map);
-		
-		// This is a test for moving an agent, but should be done also by MapperBDI when the agent moves and sends to it the position.
-		gui.moveAgent(currentposition_x, currentposition_y);
-		int j = 0;
-		while (j<8)
-		{
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
+		else{
+			if(currentlyDelivering.isToKitchen()){
+				System.out.println("Waiter is on his way to the kitchen with order " + currentlyDelivering.getName());
 			}
-			gui.moveAgent(positionsx[j], positionsy[j]);
-			j++;
+			else{
+				System.out.println("Waiter is on his way to a customer with order " + currentlyDelivering.getName());
+				
+
+			}
+			
+			bdiFeature.adoptPlan("deliverOrder");
+			
 		}
 	}
+	
+	/**
+	 * Plan that gets triggered when additional orders are added. 
+	 * @param event
+	 */
+	@Plan(trigger=@Trigger(factaddeds="orders"))
+	public void deliverOrders(ChangeEvent event){
+		ChangeInfo<Order> change = ((ChangeInfo<Order>)event.getValue()); 
+		Order newOrder = change.getValue();
+		
+		if(this.currentlyDelivering == null){
+			currentlyDelivering = newOrder;
+		}
+		else{
+			if(currentlyDelivering != null){
+				System.out.println("Waiter is busy, " + newOrder.getName() + " is added to queue.");
+			}
+		}		
+	}
+	
+	@Plan
+	public void deliverOrder(){
+		
+		//Work for time it takes to deliver order
+		execFeature.waitForDelay(this.currentlyDelivering.getTimeToDeliver()).get();
+		
+		//If currently giving order to customer, then set delivered to true
+		if(!currentlyDelivering.isToKitchen()){
+			currentlyDelivering.setDelivered(true);
+			System.out.println("Finished serving order: " + currentlyDelivering.getName() + " to customer.");
+		}
+		else{
+			System.out.println("Finished delivering order: " + currentlyDelivering.getName() + " to kitchen.");
+			Restaurant.getInstance().addToChefList(currentlyDelivering);
+		}
+		
+		this.orders.remove(currentlyDelivering);
+		
+		if(!orders.isEmpty()){
+			this.currentlyDelivering = orders.get(0);
+			System.out.println("Remaining orders: " + orders.size());
+		}
+		else{
+			this.currentlyDelivering = null;
+		}
+	}
+	
+	public void collectList() {
+		this.orders = Restaurant.getInstance().getWaiterList();
+	}
+
+	
+	
+
 }
